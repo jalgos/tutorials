@@ -1,0 +1,68 @@
+The mongodb team put together a really nice tutorial here:
+http://try.mongodb.org/
+Other important resources:
+-javascript:   http://www.w3schools.com/js/
+-json:       http://www.w3schools.com/json/
+
+
+0)Introduction
+The legend has that MongoDB was created to exactly mimic Google's BigTable's behaviour.
+It was designed to overcome SQL's main drawbacks that hindered its scalability.
+
+-SQL's query language is not a Turing complete language. Exotic queries are hard to achieve. 
+-Schemas limit flexibility. Insert have to fit the schema and in case you need to insert more information on subsequent you need to change the schema
+-Column based tables make insert slow
+
+MongoDB differs from SQL on many features:
+-It fully relies on javascript, so queries can take all forms
+-It has no schemas. Tables are simply collections of json documents. Records in the same collection can totally differ from one another.
+-Row based database, makes insert fast but queries slower.
+-MongoDB answers the problem of scalibility with replication sets and sharding (dividing the database among many servers to distribute queries).
+-MongoDB loose schemas don't allow for indexing and joining. To do such operations you need to do it manually using the language
+
+Be aware that no tool is inherently better than the other (although the fact that SQL doesn't have a real query language is a huge limitation*). Everything depends on the kind of problem and data you have. It also depends on what constraints you have. Are you trying to be very flexible, do you need fast access to the db, or fast writing. If joining and indexing is a key feature you want to have in your database MongoDB is definitely not a good solution
+
+*There are other great db solutions that are column based, allow replication and sharding and have a full query language.
+ Anyway knowing MongoDB is definitely a must if you want to understand better what is a database and what purposes it fullfills. (It should be compulsory for any data scientist! ^^ )
+
+1)Installation
+
+First step is to install the mongo client:
+easy install on debian like distros:
+>sudo apt-get install mongodb
+
+
+2)The mongo shell
+
+let's now open a mongo shell:
+the mongoadmin probably gave a username a password and a host to connect to
+running the following command:
+
+>mongo
+
+Will connect to the localserver. It is of little interest if you have no local server running or no database on the server.
+
+However, one of mongo's really nice feature is that it can execute code javascript code.
+The mongo shell can be use as a command by command javascript interpreter:
+
+>print("Hallo Welt")
+>2+1
+>var a = "Hahahaha!"
+>a
+
+If you don't know javascript I strongly suggest that you do the w3school tutorial on js: http://www.w3schools.com/js/
+Knowing js is not mandatory if you want to use mongo but it's a key when trying to do finer things like running exotic queries or using map/reduce.
+
+
+3)Connecting to a database
+If your mongodb admin gave you some logging credential,
+you connect to the server hostname and the database test:
+
+mongo -u username -p password -host hostname test
+Depending on your user privileges you can run the following commands to explore the db:
+
+>show dbs
+It will list all the databases served as long with an estimated size in GB of the db. The command won't run for users that don't have the readAnyDatabase role (so in general it shouldn't work if you were given access to only one db)
+
+>show collections
+It will list all the collections within the database. Collections are the rough equivalent of tables in SQL. Since mongo and SQL are conceptually different we prefer using different words. 
