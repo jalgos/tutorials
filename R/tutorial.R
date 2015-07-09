@@ -75,7 +75,7 @@ for(x in my_vector){
 ## A good rule of thumbs in R is "avoid using loops". Indeed since R is interpreted an R loop is painfully slow
 ## The real thing to avoid is looping through your data
 ## For loops can be used if what is performed during the loop is what takes the most time
-## R spirit's is to externalize all the big computatio and only write the higher logic
+## R spirit's is to externalize all the big computation and only write the higher logic
 ## e.g: sum of a vector
 r = rnorm(1000000) #huge vector of n random draws of a N(0, 1)
 system.time({x=0; for(i in 1:length(r)) x = x + r[i]; print(x)}) ##slow
@@ -90,9 +90,167 @@ system.time(print(sum(x))) ## lightning fast
 
 
 ##################################################
-## III) Basic data structures
+## II) Basic data structures
 ##################################################
 ## Vectors
+
+## In R all basic types are vector
+is.vector(1) ## TRUE
+is.vector("A") ## TRUE too
+## As a statistical language R was designed to analyze collections, sequences, tables of data. So vectorizing the basic types makes sense.
+## This design feature makes vector computation faster.
+
+## It is really important to keep this design in mind when programming in R
+
+## Function must be design to work with vectors and not individual elements.
+
+## All the basic operators apply term by term
+## e.g if we have two vectors X = (x1, ..., xn) and Y = (y1, ..., yn)
+## Then X ^ Y = (x1 ^ y1, ..., xn ^ yn)
+X = rnorm(100) ## A vector of length 100 with each element drawn from a normal 0, 1
+Y = rnorm(100) ## DITTO
+X + Y
+X > 0 ## A vector of type 'logical'
+cos(X)
+
+##Creating a vector
+## The function 'c' is use to concatenate vectors
+A = c(1, 2, 4)
+
+## 'length' returns the size of a vector
+length(A)
+length(X)
+
+## Subsetting vectors
+## A subset of a vector can be extracted with the`[]` operator
+## Its arguments are a vector of indices (numeric or double) or a vector of booleans equal to the length of the vector to be subset
+X[A] ## keeping indices 1, 2, 4
+
+## !!! Important !!! R indexing starts at 1 not 0
+X[0]
+
+X[Y > 0] ## Subset of X for which Y is positive
+X[] ## no parameters provided, returns the whole vector
+## indices can be repeated. If an index exceeds the size an NA will be returned
+
+X[c(2, 2, 1, 1000)]
+
+## Negative indices can be use to return the complement of the subset formed by the indices given
+X[-(11:80)] ##Will return the first 10 cells and the last 20
+
+## Creating a vector from 1 to n is easy:
+1:10
+
+## The function 'seq' can be used too
+seq(from = 1, to = 10, by = 1)
+## seq is not limited to integer
+seq(from = 0, to = 1, by = .1)
+
+## There are a lot of native function to aggregate vectors
+sum(X)
+max(X)
+mean(X)
+quantile(X, c(0.1, 0.2, 0.8))
+
+## names
+
+## Vector can have name attributes
+## To assign names to a vector simply use the function 'names<-'
+u = rnorm(26)
+names(u) = letters
+u
+## names must be characters
+## If u is named u can be subset by names
+u[c("a", "l", "m")]
+
+## Names can be set when explicitly creating a vector
+V = c(u = 1, bob = 2, x = 9, 10, 22, f = 30)
+names(V) ## not every cell needs to be named
+
+
+## Matrices
+
+## R has a native type to perform linear algebra
+
+M = matrix(rnorm(100), 10, 10) ##10 x 10 matrix
+## dimensions can be queried with dim, nrow, ncol
+dim(M)
+ncol(M)
+nrow(M)
+## '%*%' is the matrix multiplication operator
+M %*% t(M)
+
+## Multiplying a matrix by a vector returns a vector
+V = rnorm(10)
+M %*% V
+
+## Matrices can be subset similarly to vectors
+M[1:4, 5:8]
+## if a subset index is missing no subsetting is done on that dimension
+M[1:4, ]
+M[, 5:8]
+M[, ] ## Whole matrix
+
+## R will convert the result to a vector if any of the subsetting dimension is of length 1
+M[5, ]
+M[, 10]
+
+## This can be avoided by setting drop to FALSE
+M[5, , drop = FALSE]
+M[, 10, drop = FALSE]
+
+## Negative subsetting works with matrices too
+M[-(1:5), 1:5]
+
+## Matrices can be converted to vectors
+V = as.vector(M)
+## M[i, j] = V[i + (j - 1) * n] where n is the number of rows in M
+## This is also known as column major representation
+## Hence M can be subset as a vector:
+
+M[18] == M[8, 2] ## TRUE
+
+## Similarly to vectors matrices can have row names and column names
+## The functions use to access and set names are 'rownames' 'colnames' and 'dimnames'
+rownames(M) = letters[1:10]
+colnames(M) = letters[11:20]
+dimnames(M) ## list of rownames and colnames
+M[c("a", "b"), c("m", "p")]
+## Names are elegantly assigned when performing most of the operations on matrices
+M %*% t(M) ## rownames and colnames are identical now
+
+## R has plenty of native functions to analyse matrices:
+det(M)
+solve(M) ## inverse
+eigen(M) ## eigen value decomposition
+
+## R supports sparse matrices thanks to the package 'Matrix'.
+## It is installed by default.
+## Sparse Matrices are used in many kinds of problems, notably in graph analysis.
+
+
+
+
+
+## List
+## R provides a very flexible list structure
+## R list can be composed of any kind of objects. 
+L = list(a = 1, b = "bonjour", r = rnorm(1000), l = list(1, 2, 3, 4), 12, cos, fun = exp)
+
+## Similarly to vectors list have names
+names(L)
+## list are access with the `[[]]` operator
+L[[1]]
+L[["a"]]
+## The `$` operator is another way to access members
+L$l
+
+## The `[]` returns a list
+L[c(1, 2, 4)]
+L[c("a", "fun")]
+
+## Lists are a great way to compose more complex objects without having to resort to writing a class.
+
 
 
 ##################################################
@@ -106,6 +264,15 @@ system.time(print(sum(x))) ## lightning fast
 ## Defining functions is straightforward
 my_function <- function(x, y)
 {
+    x + y - y / x
+}
+
+## By default the return value is the last evaluated call
+## R has a return statement that can be use to return early
+
+my_function <- function(x, y)
+{
+    if(any(!is.finite(x))) return(0)
     x + y - y / x
 }
 
@@ -233,9 +400,6 @@ fmiss <- function(x, y)
 fmiss(1, 2)
 fmiss(1)
 fmiss(y = 1)
-
-
-
 
 ##################################################
 ## IV) R Objects and method dispatching
@@ -393,4 +557,124 @@ combineA(myB1, myC) ## BC
 combineA(myC, myB1) ## AA
 combineA(myC, myC) ## AC
 
-## Multiple arguments dispatching allows for finer control
+## Dispatching functions on multiple arguments allows for finer control
+
+## "Modifying" objects
+
+## As mentionned earlier R objects don't hold states. Modifiying an object is done functionnaly
+
+modify <- function(X, new_name)
+{
+    X@name = new_name
+    X
+}
+
+newA = modify(myA, "newA")
+## It is preferable to use different variables instead of reassigning the value of modify to myA.
+## Both syntax are correct but assigning the output of modify to a new objects makes it easier to debug.
+## Of course if myA is a huge object, then it's better not to systematically copy it.
+
+## Defining objects is an advance feature that is usually used at an advanced stage in the research. Basic exploratory analysis do not require objects as structures like lists, data frames and vectors can easily do the job.
+## It is however important to know how to implement R objects to better understand some R packages and to be able to soundly design algorithms.
+
+
+##################################################
+## V) Debugging functions
+##################################################
+
+## R has a step by step debugger somehow a bit more basic than the C++ or Java equivalents but yet very powerful
+
+## A breakpoint on the entry of a function can be set with the debug function
+fun_test <- function(x)
+{
+    x = x + 1
+    for(i in 1:10)
+    {
+        x = x * 1.1
+    }
+    x
+}
+debug(fun_test)
+fun_test(1)
+
+## You've entered the debugger. To go to the next line enter 'n'
+## To continue execution until the next breakpoint type 'c' or 'cont'.
+## To see the call stack enter 'where'
+## 'Q' to quit the browser
+## Typing 'c' from within a loop will continue execution until the end of the loop.
+## Try the different debugging commands with fun_test
+
+## To stop debugging a function use 'undebug'
+undebug(fun_test)
+fun_test(1)
+
+## If you only want to debug a function and not debug it at the next call use 'debugonce'
+debugonce(fun_test)
+fun_test(1)
+fun_test(1)
+
+## Another way to invoke the debugger is calling the function browser
+browser() ## No real use from the top level
+
+## If inserted in a function's body it will stop there
+fun_test <- function(x)
+{
+    x = x + 1
+    for(i in 1:10)
+    {
+        x = x * 1.1
+    }
+    browser()
+    x
+}
+fun_test(1)
+
+## There is another way to set breakpoints at a specific line of a file or of a function: 'setBreakpoint' and 'trace(..., at = x)'
+## Most of the time debug will cover most of your needs.
+## Please refer to the manual if you want to use these functions
+
+## Debugging generics
+
+## If functions are dispatched on their arguments, 'debug' will not do what you want it to do.
+## You need to use 'trace' and specify
+setGeneric("ftest", function(x) standardGeneric("ftest"))
+setMethod("ftest", c(x = "numeric"), function(x)
+          {
+              print("BLAH")
+              y = 10 * x
+              cos(y)
+          })
+setMethod("ftest", c(x = "integer"), function(x)
+          {
+              print("BLUH")
+              y = x / 10
+              exp(y)
+          })
+debugonce(ftest)
+ftest(1)
+## trace is a finer version of debug
+## You can set the function it invokes when hitting the breakpoint, specify behavior when exitting the function, stop at a specific line within the function.
+## The feature we'll look at is selecting the function to trace according to its signature
+
+trace(ftest, signature = "numeric", tracer = browser)
+ftest(10) ## stops
+ftest(1L) ## integer version is not debugged
+
+## use untrace to remove breakpoints
+untrace(ftest, signature = "numeric")
+
+## Debugging is fondamental in developpment. It is really important to master this tool to develop faster in R
+
+##################################################
+## VI) Using packages
+##################################################
+
+## R provides a myriad of packages written in faster languages such as C/ C++ or Fortran.
+## It is strongly advised to use packages instead of writing your own structures.
+## Installing a package is done with the 'install.packages' command
+install.packages('data.table') ## Great package that extends R's dat frames
+## To load a package use the 'library' command
+library(data.table)
+
+## This is pretty straightforward
+## Before starting to implement something that is not central in your project make sure to thoroughly look on CRAN if a package is available for what you want to do.
