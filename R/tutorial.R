@@ -283,10 +283,18 @@ plus(y = 1)
 
 
 ## Defining operators
+## Binary operators can be define/ overriden. There is a finite set of binary operators allowed in R. '%+%' is one of them
 setGeneric(name = "%+%", function(x, y) plus(x, y))
-setMethod("%+%", c("ANY", "ANY"), plus)
+1 %+% "A"
+2 %+% 1
 
+## This feature is useful for overriding mathematical operators for customly defined objects (e.g. matrix multiplicatiob...)
 
+## R provides a quick way to define a virtual superclass of a define set of classes. This is a useful feature to define a function that can handle several different types.
+
+setClassUnion("allnumeric", c("numeric", "complex", "logical", "integer"))
+setMethod(f = "plus", signature = c(x = "allnumeric", y = "allnumeric"), definition = plus.number)
+1L %+% 2 + 0.5i
 
 ## R Objects
 
@@ -354,4 +362,35 @@ is(myC, "V") ## inherits
 is(myC, "B") ## same super class A but different
 
 ## Writing functions
-myfA <- function()
+myfA.A <- function(X)
+{
+    print(X@name)
+}
+
+setGeneric("myfA", function(X) standardGeneric("myfA"))
+setMethod("myfA", "A", myfA.A)
+
+myfA.C <- function(X)
+{
+    print(X@u)
+}
+
+setMethod("myfA", "C", myfA.C)
+myfA(myA)
+myfA(myB1)
+myfA(myC)
+
+## A great advantage of function dispatching is that it can be done on several arguments.
+setGeneric("combineA", function(X, Y) standardGeneric("combineA"))
+setMethod("combineA", c("A", "A"), function(X, Y) "AA")
+setMethod("combineA", c("B", "B"), function(X, Y) "BB")
+setMethod("combineA", c("A", "C"), function(X, Y) "AC")
+setMethod("combineA", c("B", "C"), function(X, Y) "BC")
+
+combineA(myA, myA) ## AA
+combineA(myB1, myB2) ## BB
+combineA(myB1, myC) ## BC
+combineA(myC, myB1) ## AA
+combineA(myC, myC) ## AC
+
+## Multiple arguments dispatching allows for finer control
