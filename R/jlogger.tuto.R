@@ -147,3 +147,14 @@ jlwrite.info(logger, d)
 ##################################################
 
 ## Logging levels 
+## Logging levels can be set directly:
+logger = JLoggerFactory("jalgos")
+logger$m_level = JLOGGER.INFO
+
+## It can also be set through the function 'set_logging_level'
+set_logging_level(logger, JLOGGER.INFO)
+
+## 'set_logging_level' handles logger objects and logger names
+set_logging_level("jalgos", JLOGGER.INFO)
+
+## Output files
