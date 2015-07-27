@@ -60,6 +60,8 @@ f()
 ##################################################
 
 ## First you need to source the file "jlogger.R"
+## The file can be found in the git project 'util' along with other utility R functions. url: 'git@datasaiyan.com:/home/git/repos/utils/util.R.git'
+## Jlogger requires you to source the file "util.R" as well (uses function 'mgrep')
 
 ## JLogger objects are created/ retrieved through the JLoggerFactory
 ## Each logger is identified by a string id:
@@ -158,3 +160,81 @@ set_logging_level(logger, JLOGGER.INFO)
 set_logging_level("jalgos", JLOGGER.INFO)
 
 ## Output files
+## The logger can output its messages to one or several files
+## The logging files can be access and overriden through the member 'm_files'
+
+logger$m_files
+## This field is a character vector of the log file names.
+## The only exception is that the filename "" will log to the console
+## logfiles can be set with 'set_logfiles' and 'add_logfiles'
+
+set_logfiles(logger, #logger can be an object or a character string
+             c("test.log"))
+logger$m_files
+jlog.info(logger, "Test") ## Output to "test.log"
+add_logfiles(logger, #DITTO
+             "")
+logger$m_files
+jlog.info(logger, "Test 2") ## Output to both "test.log" and the console
+
+## The logger will automatically append the new messages to the files.
+## logfiles can be flushed with 'jlflush' function
+jlflush(logger) #Flushing console isn't relevant, 'test.log' will however be flushed
+
+## Prefix
+## The prefix is the string printed right after the date. It can be set directly through the member logger$m_prefix
+logger$m_prefix = "Michael Jackson"
+jlog.info(logger, "is bad")
+
+## Logger can be fully configured at inception. 'JLoggerFactory ' accepts additional arguments.
+## Namely 'files', 'prefix' defaulting to the logger's name, 'level'
+my_logger <- JLoggerFactory(name = "my logger",
+                            files = c("", "file1.log", "file2.log"),
+                            prefix = "make it funky",
+                            level = JLOGGER.TRACE)
+my_logger
+jlog.trace(my_logger, "yaay!")
+
+## The default level is JLOGGER.DEFAULT_LEVEL
+JLOGGER.DEFAULT_LEVEL
+## If changed the next jlogger instantiated without a specified level will be set to this level
+JLOGGER.DEFAULT_LEVEL = JLOGGER.ERROR
+errlog = JLoggerFactory(name = "err logger")
+errlog$m_level
+
+## Turning off logging completely
+## Logging can be turned off by setting a logging level higher than the highest logging level available. The highest level for now is JLOGGER.FATAL
+logger$m_level = JLOGGER.FATAL + 1L
+jlog.fatal(logger, "1 = 2") # won't print
+
+## The jlog functions accept NULL as input. In this case no message is printed
+
+jlog.info(NULL, "1 != 1") ## Nothing
+## It makes it easy to turn off all messaging without having to handle logging levels.
+
+
+## Clearing registered loggers.
+## You can clear all created logger with 'JLoggerReset'
+JLoggerReset() ## subsequent calls to JLoggerFactory will create a new instance
+
+## jlogger config
+## JLoggers can be configured through a config list
+## Logger configs are used to automatically configure the logging leveld
+## You need to specify one entry by logging level. You don't need to specify all the levels. Each entry refers to a set of regular expressions.
+## Example:
+
+lconf <- list(ERROR = "err.*",
+              INFO = c("jalgos", "inf.*"),
+              TRACE = c("tracer", "overlogger"))
+
+## Now by setting the 'logconfig' argument in JLoggerFactory to 'lconf', the name will be matched against the different regular expression and in case there is a match the logging level will be set to the corresponding level.
+## If a name doesn't match any regex in the config, the logger will be quiet for all levels
+
+err_log <- JLoggerFactory(name = "err logger",
+                          logconfig = lconf)
+
+err_log ## "err logger"  matches "err.*" hence err_log's level is set to ERROR
+
+jalgos_logger <- JLoggerFactory(name = "jalgos",
+                          logconfig = lconf)
+jalgos_logger ## "jalgos" matches an entry for INFO
